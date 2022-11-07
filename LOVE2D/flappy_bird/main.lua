@@ -1,5 +1,9 @@
 push = require 'push'
 
+Class = require 'class'
+
+require 'Bird'
+
 WINDOW_WIDTH = 512
 WINDOW_HEIGHT = 720
 
@@ -17,6 +21,8 @@ local GROUND_SCROLL_SPEED = 60 -- make faster than background
 
 -- loop image to get infinite effect
 local BACKGROUND_LOOPING_POINT = 413
+
+local bird = Bird()
 
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -55,5 +61,8 @@ function love.draw()
 
     -- subtract 16 since that's image height and we want to draw bottom left corner
     love.graphics.draw(ground, -groundScroll, VIRTUAL_HEIGHT - 16)
+
+    bird:render()
+
     push:finish()
 end
