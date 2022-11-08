@@ -34,6 +34,9 @@ function love.load()
         fullscreen = false,
         resizable = true
     })
+
+    -- create our own table in love.keyboard
+    love.keyboard.keysPressed = {}
 end
 
 function resize(w, h)
@@ -41,8 +44,18 @@ function resize(w, h)
 end
 
 function love.keypressed(key)
+    love.keyboard.keysPressed[key] = true
     if key == 'escape' then
         love.event.quit()
+    end
+end
+
+-- keep track so we can implement keypresses to specific entities. More useful in other games, not so in flappy bird
+function love.keyboard.wasPressed(key)
+    if love.keyboard.keysPressed[key] then
+        return true
+    else
+        return false
     end
 end
 
@@ -56,6 +69,9 @@ function love.update(dt)
 
     -- implement gravity
     bird:update(dt)
+
+    -- reset keysPressed table every frame (set to false)
+    love.keyboard.keysPressed = {}
 end
 
 function love.draw()
