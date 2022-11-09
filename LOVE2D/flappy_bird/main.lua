@@ -4,6 +4,8 @@ Class = require 'class'
 
 require 'Bird'
 
+require 'Pipe'
+
 WINDOW_WIDTH = 512
 WINDOW_HEIGHT = 720
 
@@ -24,10 +26,17 @@ local BACKGROUND_LOOPING_POINT = 413
 
 local bird = Bird()
 
+-- our table of spawning pipes
+local pipes = {}
+-- our timer for spawning
+local spawnTimer = 0
+
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
 
     love.window.setTitle('Fifty Bird')
+
+    math.randomseed(os.time())
 
     push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
         vsync = true,
@@ -67,8 +76,26 @@ function love.update(dt)
     groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt)
         % VIRTUAL_WIDTH
 
+    spawnTimer = spawnTimer + dt
+
+    -- spawn new pipe every 2 seconds
+    if spawnTimer > 2 then
+        table.insert(pipes, Pipe())
+        spawnTimer = 0
+    end
+
     -- implement gravity
     bird:update(dt)
+
+    -- for every pipe in scene...
+    for k, pipe in pairs(pipes) do
+        pipe:update(dt)
+
+    -- if pipe is no longer visible past left edge, remove
+        if pipe.x < -pipe.width then
+            table.remove(pipes, k)
+        end
+    end
 
     -- reset keysPressed table every frame (set to false)
     love.keyboard.keysPressed = {}
@@ -77,6 +104,11 @@ end
 function love.draw()
     push:start()
     love.graphics.draw(background, -backgroundScroll, 0) -- draw in top left corner
+
+    -- render all pipes in scene
+    for k, pipe in pairs(pipes) do
+        pipe:render()
+    end
 
     -- subtract 16 since that's image height and we want to draw bottom left corner
     love.graphics.draw(ground, -groundScroll, VIRTUAL_HEIGHT - 16)
