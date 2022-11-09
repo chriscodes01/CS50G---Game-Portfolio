@@ -6,6 +6,8 @@ require 'Bird'
 
 require 'Pipe'
 
+require 'PipePair'
+
 WINDOW_WIDTH = 512
 WINDOW_HEIGHT = 720
 
@@ -27,9 +29,13 @@ local BACKGROUND_LOOPING_POINT = 413
 local bird = Bird()
 
 -- our table of spawning pipes
-local pipes = {}
+local pipePairs = {}
 -- our timer for spawning
 local spawnTimer = 0
+
+-- init our last recorded Y value for gap replacement for future gaps
+-- creates smooth contour for gaps; no sudden drops or steep climbs that are impossible to beat
+local lastY = -PIPE_HEIGHT + math.random(80) + 20
 
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -80,7 +86,15 @@ function love.update(dt)
 
     -- spawn new pipe every 2 seconds
     if spawnTimer > 2 then
-        table.insert(pipes, Pipe())
+        -- modify last Y coord. We placed so pipe gaps aren't too far apart
+        -- no higher than 10 pixels below top edge
+        -- no lower than gap length (90 pixels) from bottom
+        local y = math.max(-PIPE_HEIGHT + 10,
+            math.min(lastY + math.random(-20, 20),
+            VIRTUAL_HEIGHT - 90 - PIPE_HEIGHT))
+        lastY = y
+
+        table.insert(pipePairs, PipePair(y))
         spawnTimer = 0
     end
 
@@ -88,12 +102,13 @@ function love.update(dt)
     bird:update(dt)
 
     -- for every pipe in scene...
-    for k, pipe in pairs(pipes) do
-        pipe:update(dt)
+    for k, pair in pairs(pipePairs) do
+        pair:update(dt)
+    end
 
-    -- if pipe is no longer visible past left edge, remove
-        if pipe.x < -pipe.width then
-            table.remove(pipes, k)
+    for k, pair in pairs(pipePairs) do
+        if pair.remove then
+            table.remove(pipePairs, k)
         end
     end
 
@@ -106,8 +121,8 @@ function love.draw()
     love.graphics.draw(background, -backgroundScroll, 0) -- draw in top left corner
 
     -- render all pipes in scene
-    for k, pipe in pairs(pipes) do
-        pipe:render()
+    for k, pipe in pairs(pipePairs) do
+        pair:render()
     end
 
     -- subtract 16 since that's image height and we want to draw bottom left corner
