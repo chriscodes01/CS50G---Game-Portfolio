@@ -37,6 +37,8 @@ local spawnTimer = 0
 -- creates smooth contour for gaps; no sudden drops or steep climbs that are impossible to beat
 local lastY = -PIPE_HEIGHT + math.random(80) + 20
 
+local scrolling = true
+
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
 
@@ -75,43 +77,59 @@ function love.keyboard.wasPressed(key)
 end
 
 function love.update(dt)
-    -- scroll background by preset speed * dt, looping back to 0 after looping point
-    backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt)
-        % BACKGROUND_LOOPING_POINT
-    
-    groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt)
-        % VIRTUAL_WIDTH
+    if scrolling then
+        -- scroll background by preset speed * dt, looping back to 0 after looping point
+        backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt)
+            % BACKGROUND_LOOPING_POINT
+        
+        groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt)
+            % VIRTUAL_WIDTH
 
-    spawnTimer = spawnTimer + dt
+        spawnTimer = spawnTimer + dt
 
-    -- spawn new pipe every 2 seconds
-    if spawnTimer > 2 then
-        -- modify last Y coord. We placed so pipe gaps aren't too far apart
-        -- no higher than 10 pixels below top edge
-        -- no lower than gap length (90 pixels) from bottom
-        local y = math.max(-PIPE_HEIGHT + 10,
-            math.min(lastY + math.random(-20, 20),
-            VIRTUAL_HEIGHT - 90 - PIPE_HEIGHT))
-        lastY = y
+        -- spawn new pipe every 2 seconds
+        if spawnTimer > 2 then
+            -- modify last Y coord. We placed so pipe gaps aren't too far apart
+            -- no higher than 10 pixels below top edge
+            -- no lower than gap length (90 pixels) from bottom
+            local y = math.max(-PIPE_HEIGHT + 10,
+                math.min(lastY + math.random(-20, 20),
+                VIRTUAL_HEIGHT - 90 - PIPE_HEIGHT))
+            lastY = y
 
-        table.insert(pipePairs, PipePair(y))
-        spawnTimer = 0
-    end
+            table.insert(pipePairs, PipePair(y))
+            spawnTimer = 0
+        end
 
-    -- implement gravity
-    bird:update(dt)
+        -- implement gravity
+        bird:update(dt)
 
-    -- for every pipe in scene...
-    for k, pair in pairs(pipePairs) do
-        pair:update(dt)
-    end
+        -- for every pipe in scene...
+        for k, pair in pairs(pipePairs) do
+            pair:update(dt)
+            
+            -- check if bird collided
+            for l, pipe in pairs(pair.pipes) do
+                if bird:collides(pipe) then
+                    -- pause game to show collision
+                    scrolling = false
+                end
+            end
 
-    for k, pair in pairs(pipePairs) do
-        if pair.remove then
-            table.remove(pipePairs, k)
+            if pair.x < -PIPE_WIDTH then
+                pair.remove = true
+            end
+        end
+
+        -- create this second loop to avoid skipping next pipe
+        -- since all implicit keys/numberical indices are shifted down after a table removal
+        for k, pair in pairs(pipePairs) do
+            if pair.remove then
+                table.remove(pipePairs, k)
+            end
         end
     end
-
+    
     -- reset keysPressed table every frame (set to false)
     love.keyboard.keysPressed = {}
 end
