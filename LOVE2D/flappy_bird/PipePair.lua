@@ -8,7 +8,7 @@ function PipePair:init(y)
     self.x = VIRTUAL_WIDTH + 32
 
     -- y value is for topmost pipe; gap is vertical shift of second pipe
-    self.y = Y
+    self.y = y
 
     -- instantiate two pipes that belong to this pair
     self.pipes = {
@@ -25,8 +25,8 @@ function PipePair:update(dt)
     -- else move it right to left
     if self.x > -PIPE_WIDTH then
         self.x = self.x - PIPE_SPEED * dt
-        self.pipes['lower'].x = self.X
-        self.pipes['upper'].x = self.X
+        self.pipes['lower'].x = self.x
+        self.pipes['upper'].x = self.x
     else
         self.remove = true
     end

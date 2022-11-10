@@ -121,7 +121,7 @@ function love.draw()
     love.graphics.draw(background, -backgroundScroll, 0) -- draw in top left corner
 
     -- render all pipes in scene
-    for k, pipe in pairs(pipePairs) do
+    for k, pair in pairs(pipePairs) do
         pair:render()
     end
 
