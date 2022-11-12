@@ -8,6 +8,11 @@ require 'Pipe'
 
 require 'PipePair'
 
+require 'StateMachine'
+require 'states/BaseState'
+require 'states/PlayState'
+require 'states/TitleScreenState'
+
 WINDOW_WIDTH = 512
 WINDOW_HEIGHT = 720
 
@@ -129,7 +134,7 @@ function love.update(dt)
             end
         end
     end
-    
+
     -- reset keysPressed table every frame (set to false)
     love.keyboard.keysPressed = {}
 end
