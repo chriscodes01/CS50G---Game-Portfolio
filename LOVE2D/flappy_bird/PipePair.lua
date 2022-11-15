@@ -18,6 +18,8 @@ function PipePair:init(y)
 
     -- whether this size pair is ready to be removed from scene
     self.remove = false
+
+    self.score = false
 end
 
 function PipePair:update(dt)
